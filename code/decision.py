@@ -14,13 +14,20 @@ def decision_step(Rover):
     if Rover.nav_angles is not None:
         # Check for Rover.mode status
         if Rover.mode == 'forward': 
+            Rover.steer_try_no = 0
             # Check the extent of navigable terrain
-            if len(Rover.nav_angles) >= Rover.stop_forward:  
+            if Rover.vel == 0 and Rover.throttle > 0.2:
+                Rover.throttle = 0
+                # Set brake to stored brake value
+                Rover.brake = Rover.brake_set
+                Rover.steer = 0
+                Rover.mode = 'stop'
+            elif len(Rover.nav_angles) >= Rover.stop_forward:  
                 # If mode is forward, navigable terrain looks good 
                 # and velocity is below max, then throttle 
                 if Rover.vel < Rover.max_vel:
-                    # Set throttle value to throttle setting
-                    Rover.throttle = Rover.throttle_set
+                    # Set throttle value to throttle setting                  
+                    Rover.throttle = 1 # Rover.throttle + Rover.throttle_set if Rover.throttle < 1 else Rover.throttle
                 else: # Else coast
                     Rover.throttle = 0
                 Rover.brake = 0
@@ -50,7 +57,13 @@ def decision_step(Rover):
                     # Release the brake to allow turning
                     Rover.brake = 0
                     # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-                    Rover.steer = -15 # Could be more clever here about which way to turn
+                    
+                    if Rover.steer_try_no < 5:
+                        Rover.steer_try_no += 1
+                        Rover.steer = -15 if Rover.steer <= 0 else 15 # Could be more clever here about which way to turn
+                    else:
+                        Rover.steer_try_no = 0
+                        Rover.steer = 15 if Rover.steer >= 0 else -15
                 # If we're stopped but see sufficient navigable terrain in front then go!
                 if len(Rover.nav_angles) >= Rover.go_forward:
                     # Set throttle back to stored value
@@ -63,7 +76,7 @@ def decision_step(Rover):
     # Just to make the rover do something 
     # even if no modifications have been made to the code
     else:
-        Rover.throttle = Rover.throttle_set
+        Rover.throttle = 1 # Rover.throttle + Rover.throttle_set if Rover.throttle >= 1 else Rover.throttle
         Rover.steer = 0
         Rover.brake = 0
 
