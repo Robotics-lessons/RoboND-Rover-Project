@@ -82,6 +82,7 @@ Rover = RoverState()
 # Variables to track frames per second (FPS)
 # Intitialize frame counter
 frame_counter = 0
+
 # Initalize second counter
 second_counter = time.time()
 fps = None
